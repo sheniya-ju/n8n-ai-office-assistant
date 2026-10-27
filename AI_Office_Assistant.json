@@ -1,0 +1,1314 @@
+{
+  "name": "AI Office Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        432
+      ],
+      "id": "98ba3183-6b64-447b-95c2-8c8badee1ffd",
+      "name": "When chat message received",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": "openrouter/free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        720
+      ],
+      "id": "123a9458-1235-4146-aa96-5596f1952e98",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').first().json.chatInput }}",
+        "options": {
+          "systemMessage": "\nYou are an AI Office Assistant that handles employee conversations and classifies office requests.\nGENERAL CONVERSATION RULE:\n- If the user sends a greeting, asks a general question, or asks something unrelated to an office request, respond naturally and helpfully.\n- Do not require an employee ID for general conversation.\n- Do not send general conversation messages to employee validation or department email workflows.\n- Only requests that require office assistance, such as leave, IT support, payroll, HR, or office facilities, should proceed to employee ID validation.\n- For general conversation, return a normal text response, not classification JSON.\nNORMAL CONVERSATION RULE:\n- If the user sends a greeting such as \"Hi\", \"Hello\", or \"Good morning\", respond naturally with a friendly greeting.\n- Briefly explain that you can help with Leave, IT Support, Payroll, HR, and general office requests.\n- If the user asks what you can do, explain your capabilities in plain language.\n- Do not classify greetings or general conversational messages as employee requests.\n- For these conversational messages, return a normal, friendly text response, not JSON.\n- For actual employee requests, follow all classification rules below and return valid JSON only.\n\nYOUR ROLE:\nAnalyze employee messages and classify each actionable employee request into exactly one category:\n- Leave\n- IT Support\n- Payroll\n- HR\n- Other\n\nCLASSIFICATION GUIDELINES:\n- Leave: Leave applications, leave balance questions, vacation requests, sick leave, and leave policies.\n- IT Support: Laptop issues, software errors, network problems, account access, and technical assistance.\n- Payroll: Salary, payslips, deductions, overtime payments, and salary-related questions.\n- HR: Onboarding, employee documents, workplace policies, attendance, benefits, and general HR questions.\n- Other: Actionable messages that do not fit any of the above categories.\n\nPRIORITY GUIDELINES:\n- High: The issue is explicitly urgent, blocks critical work, or involves a serious time-sensitive problem.\n- Medium: The issue requires attention but is not clearly urgent.\n- Low: General questions, routine requests, or non-urgent matters.\n- Do not automatically mark a request High priority simply because it mentions a problem.\n- If urgency is unclear, choose Medium for actionable requests and Low for general informational questions.\n\nRESPONSE REQUIREMENTS FOR EMPLOYEE REQUESTS:\nReturn valid JSON only, with exactly these five fields:\n\n{\n  \"category\": \"Leave, IT Support, Payroll, HR, or Other\",\n  \"priority\": \"Low, Medium, or High\",\n  \"reason\": \"A brief explanation for the classification and priority\",\n  \"suggested_next_step\": \"One useful and practical next action for the receiving manager or department\",\n  \"original_message\": \"The exact original employee message\"\n}\n\nJSON RULES:\n- Use double quotes for all JSON keys and string values.\n- Do not include Markdown code fences.\n- Do not include text before or after the JSON object.\n- Do not add extra fields to employee-request JSON.\n- Ensure the response is valid JSON.\n- Keep the reason and suggested_next_step concise and clear.\n- Escape quotation marks and special characters correctly when needed.\n- Preserve original_message exactly as received, including punctuation and wording.\n\nSAFETY AND ACCURACY:\n- Use only information provided in the employee's message and connected tools.\n- Do not invent employee names, dates, salary amounts, policies, or other facts.\n- If essential information is missing, mention what needs clarification in suggested_next_step.\n- Do not claim that you checked company records or policies unless a connected tool actually provided that information.\n- Do not send emails, approve or reject leave, change employee records, or perform external actions yourself.\n- Only classify the request and recommend a next step.\n\nSUGGESTED NEXT STEP — MANAGER-FOCUSED RULES:\nAlways write suggested_next_step as a clear, professional action for the manager or department receiving the email. Do not give instructions to the employee.\n\nUse these guidelines:\n- Leave: Review the employee's leave request, verify the applicable leave balance and policy, and make a decision according to company procedures.\n- IT Support: Investigate the reported technical issue, identify its cause, and coordinate the appropriate resolution.\n- Payroll: Review the employee's payslip and salary records, verify the reported discrepancy, and explain or correct it according to company procedures.\n- HR: Review the employee's request, verify the applicable HR requirements, and provide the appropriate assistance.\n- Other: Review the request, identify the appropriate person or team to handle it, and coordinate the next action.\n\nAdditional rules:\n- Keep the suggested next step concise, professional, and actionable.\n- Tailor the recommendation to the actual message and its priority.\n- For urgent issues, recommend prompt attention.\n- Do not claim that records were checked, a problem was resolved, or a request was approved unless a connected tool confirms it.\n- Do not automatically approve or reject leave or make decisions on behalf of a manager.\n\nCALCULATION REQUESTS:\n- If an employee asks a mathematical or arithmetic question, calculate the answer when possible.\n- Use the connected Calculator tool for calculations when appropriate.\n- Do not classify a calculation as an HR-related request unless it specifically concerns HR, payroll, leave, or another defined category.\n- If a calculation is unrelated to office matters, use category \"Other\".\n- Put the actual calculated result in suggested_next_step.\n- Never claim that a tool was used unless it was actually called.\n\nEXAMPLE — EMPLOYEE REQUEST:\nEmployee message:\n\"EMP001 I need IT support for my laptop.\"\n\nExpected response:\n{\n  \"category\": \"IT Support\",\n  \"priority\": \"Medium\",\n  \"reason\": \"The employee requests technical assistance with a laptop, but no urgent impact is specified.\",\n  \"suggested_next_step\": \"Investigate the laptop issue and coordinate the appropriate technical support.\",\n  \"original_message\": \"EMP001 I need IT support for my laptop.\"\n}\n\nIMPORTANT:\n- Normal greetings and conversational messages receive friendly natural-language replies.\n- Actual employee requests receive the five-field JSON response above.\n- Do not classify a greeting as an employee request merely because it does not match a specific category.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1200,
+        416
+      ],
+      "id": "f1c93359-1539-4735-876d-7b0d6e064c80",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        656
+      ],
+      "id": "f0d95374-e8fb-408e-b46e-bb316511dc65",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.output.replace(/^\\s*```(?:json)?\\s*|\\s*```\\s*$/g, \"\")).category }}",
+                    "rightValue": "Leave",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ceb3c8f0-db81-47ad-bd61-bc4dc53fc92b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Leave"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ca654089-aa04-4529-b1b4-da58e1bb299e",
+                    "leftValue": "={{ JSON.parse($json.output.replace(/^\\s*```(?:json)?\\s*|\\s*```\\s*$/g, \"\")).category }}",
+                    "rightValue": "IT Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "IT Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "066d3243-22b8-4eef-b13d-18ea363011de",
+                    "leftValue": "={{ JSON.parse($json.output.replace(/^\\s*```(?:json)?\\s*|\\s*```\\s*$/g, \"\")).category }}",
+                    "rightValue": "Payroll",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Payroll"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "aca36ec6-56ca-4d86-8321-7f9a9ded29fc",
+                    "leftValue": "={{ JSON.parse($json.output.replace(/^\\s*```(?:json)?\\s*|\\s*```\\s*$/g, \"\")).category }}",
+                    "rightValue": "HR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HR"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2dd5917e-a79f-4b57-80d7-79ebd38b7718",
+                    "leftValue": "={{ JSON.parse($json.output.replace(/^\\s*```(?:json)?\\s*|\\s*```\\s*$/g, \"\")).category }}",
+                    "rightValue": "Other",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Other"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1888,
+        400
+      ],
+      "id": "f9b8e64e-1ccf-47c9-93b4-f6226342872f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d81725a5-79f2-44c9-ad97-f7e1ac441511",
+              "name": "category",
+              "value": "={{ JSON.parse($json.output).category }}",
+              "type": "string"
+            },
+            {
+              "id": "dfea88cf-ed8d-4363-b0b3-a91b0db8c3a0",
+              "name": "priority",
+              "value": "={{ JSON.parse($json.output).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "a8a5df1a-2288-4fa3-8f95-5d7463914544",
+              "name": "reason",
+              "value": "={{ JSON.parse($json.output).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "506aa439-085f-418e-9261-b1af8313db52",
+              "name": "suggested_next_step",
+              "value": "={{ JSON.parse($json.output).suggested_next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "fa783ca4-50d6-4958-8090-efbfaf17199f",
+              "name": "original_message",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "c5b2006e-2ff1-4abf-aeaa-65759de54fc9",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "e2050286-695b-47e2-b246-cd9abe3f9261",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4c429e56-26cd-4a28-8840-915981367c71",
+              "name": "employee_email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "7e76c2ad-a51e-4e53-9412-c88f2275c454",
+              "name": "employee_department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2128,
+        112
+      ],
+      "id": "a29db0a2-a1d3-4a56-bb17-99b7c437fae0",
+      "name": "Leave Department"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0a51d3a2-5cef-499c-979d-35e5b5637912",
+              "name": "category",
+              "value": "={{ JSON.parse($json.output).category }}",
+              "type": "string"
+            },
+            {
+              "id": "c32b566c-9c71-4139-8597-d93b472bc586",
+              "name": "priority",
+              "value": "={{ JSON.parse($json.output).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "1ae2779d-cf98-43e7-98b5-2287aedb2f0d",
+              "name": "reason",
+              "value": "={{ JSON.parse($json.output).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "f7115694-c50f-44fd-860e-96cb721a9e44",
+              "name": "suggested_next_step",
+              "value": "={{ JSON.parse($json.output).suggested_next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "fb6008fe-f294-4ed8-ac34-b6aa2b7fff86",
+              "name": "original_message",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "9a3ef387-e045-4459-aa13-e178cb879179",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a852b19d-7c0d-45e1-ac67-d32bb2c86df3",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "8c31517d-ba4f-4062-80b3-667fab72e1da",
+              "name": "employee_email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "b691c7b7-a332-43bf-9cfe-13e8f0249430",
+              "name": "employee_department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2128,
+        272
+      ],
+      "id": "9ce0a0e4-b7ee-4878-923d-77139bfa2dd0",
+      "name": "IT Support Department"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a6ee6503-8c71-4562-b70e-ed7d4950ace8",
+              "name": "category",
+              "value": "={{ JSON.parse($json.output).category }}",
+              "type": "string"
+            },
+            {
+              "id": "b56773a1-6d3c-4717-b952-af6478200579",
+              "name": "priority",
+              "value": "={{ JSON.parse($json.output).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "69690b24-6441-4ac6-af4f-1d000eac9f55",
+              "name": "reason",
+              "value": "={{ JSON.parse($json.output).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "414af92b-db33-4c55-9238-574ae2d39e4c",
+              "name": "suggested_next_step",
+              "value": "={{ JSON.parse($json.output).suggested_next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "4f2afae8-2d51-4786-9e01-92b05eb3b21b",
+              "name": "original_message",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "f5ba9e99-243c-4230-b34a-71adb480d97b",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "746efb32-e698-4dcf-a8ae-45e6daad6c4a",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a3e0fcdf-c9ee-41a7-837c-84d8d9f74c9d",
+              "name": "employee_email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "deb95da7-a2e2-4b89-b567-5ca88d216cc8",
+              "name": "employee_department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2128,
+        432
+      ],
+      "id": "6c59dc98-429a-4426-a07a-6dd0164960c1",
+      "name": "Payroll Department"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "47a86055-d515-4b67-b331-2a59876ce665",
+              "name": "category",
+              "value": "={{ JSON.parse($json.output).category }}",
+              "type": "string"
+            },
+            {
+              "id": "5d2d365b-171c-43e6-8cb7-ad0f915b7a4d",
+              "name": "priority",
+              "value": "={{ JSON.parse($json.output).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "54011ebf-8bc8-4d5f-8187-88a0681321cf",
+              "name": "reason",
+              "value": "={{ JSON.parse($json.output).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "813f10b4-59be-4275-8559-a53abfe9622e",
+              "name": "suggested_next_step",
+              "value": "={{ JSON.parse($json.output).suggested_next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "9f771549-6de2-4141-9c15-7085608dc5a4",
+              "name": "original_message",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "0f1ae77a-39f6-4cba-96c9-d59fbeb3406c",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "e7efa702-9eac-4db8-9e4a-d4c50948a821",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "92cebc1e-3142-4950-bab2-00170c88369c",
+              "name": "employee_email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "062e4a88-0878-43b7-8ccb-4cc1eec815ae",
+              "name": "employee_department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2128,
+        592
+      ],
+      "id": "ddf19848-ae1a-4925-92e4-e7250cff7fc9",
+      "name": "HR Department"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e99e73d1-1252-4aff-a241-e2acfacc07ed",
+              "name": "category",
+              "value": "={{ JSON.parse($json.output).category }}",
+              "type": "string"
+            },
+            {
+              "id": "3de65584-b839-4289-80a6-406f9fdd9d84",
+              "name": "priority",
+              "value": "={{ JSON.parse($json.output).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "b163f01d-1b6a-47ad-ae79-def720bdfaec",
+              "name": "reason",
+              "value": "={{ JSON.parse($json.output).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "095185bf-8a8b-48fa-a5ba-04f38d5a7689",
+              "name": "suggested_next_step",
+              "value": "={{ JSON.parse($json.output).suggested_next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "03f6d3c7-c6a7-4c3e-b7c6-b4d30da64e17",
+              "name": "original_message",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "35091b93-831e-4790-8716-23e0093b8256",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3e9db4e4-f139-4a8c-ade8-61e9159acaa2",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "5977b4a6-9abf-44d7-b96d-48a41e658721",
+              "name": "employee_email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e4ebee3e-de59-4307-829a-8598f64cc5ae",
+              "name": "employee_department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2128,
+        768
+      ],
+      "id": "b94ee0c3-7dc9-4961-8889-3fa6bc6101a3",
+      "name": "Other Department"
+    },
+    {
+      "parameters": {
+        "sendTo": "leave-team@example.com",
+        "subject": "=[{{ $json.category }} Request] {{ $json.priority }} Priority",
+        "message": "=\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172b4d;\">\n\n  <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n    style=\"max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n\n    <!-- Header -->\n    <tr>\n      <td style=\"background:#173b32;padding:24px 28px;color:#ffffff;\">\n        <div style=\"font-size:22px;font-weight:bold;\">Office Assistant</div>\n        <div style=\"font-size:11px;letter-spacing:1.5px;margin-top:6px;color:#d8e9e2;\">\n          REQUEST NOTIFICATION\n        </div>\n      </td>\n    </tr>\n\n    <!-- Main content -->\n    <tr>\n      <td style=\"padding:28px;\">\n\n        <h2 style=\"margin:0 0 8px;font-size:22px;color:#172b4d;\">\n          New Request: {{ $json.category }}\n        </h2>\n\n        <p style=\"margin:0 0 22px;font-size:14px;line-height:1.6;color:#526174;\">\n          A new employee request has been classified by the AI Office Assistant\n          and routed to your department for review.\n        </p>\n\n        <!-- Status badges -->\n        <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"margin-bottom:22px;\">\n          <tr>\n            <td style=\"padding:8px 12px;background:#dcefe5;border-radius:20px;color:#17663b;font-size:12px;font-weight:bold;\">\n              {{ $json.category }}\n            </td>\n            <td width=\"8\"></td>\n            <td style=\"padding:8px 12px;background:{{ $json.priority === 'High' ? '#fce7d8' : ($json.priority === 'Medium' ? '#fff3cd' : '#e8edf2') }};border-radius:20px;color:{{ $json.priority === 'High' ? '#9a3412' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};font-size:12px;font-weight:bold;\">\n              {{ $json.priority }} Priority\n            </td>\n          </tr>\n        </table>\n\n        <!-- Request details -->\n        <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"border:1px solid #e0e6ed;border-radius:8px;\">\n\n          <!-- Employee details -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;background:#f8fbf9;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:12px;\">\n                EMPLOYEE DETAILS\n              </div>\n\n              <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;width:130px;\">\n                    Employee ID\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;font-weight:bold;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_id || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Name\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_name || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Email\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_email || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Department\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_department || 'Not available' }}\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Original message -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                ORIGINAL EMPLOYEE MESSAGE\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere;\">\n                {{ $json.original_message || 'Original message not available.' }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Category -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                CATEGORY\n              </div>\n              <div style=\"font-size:14px;color:#172b4d;\">\n                {{ $json.category }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Priority -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                PRIORITY\n              </div>\n              <div style=\"font-size:14px;font-weight:bold;color:{{ $json.priority === 'High' ? '#c2410c' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};\">\n                {{ $json.priority }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Reason -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                REASON FOR CLASSIFICATION\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.reason }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Recommended next step -->\n          <tr>\n            <td style=\"padding:18px 20px;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                RECOMMENDED NEXT STEP\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.suggested_next_step }}\n              </div>\n            </td>\n          </tr>\n\n        </table>\n\n        <p style=\"margin:22px 0 0;font-size:14px;line-height:1.7;color:#526174;\">\n          Please review this request and take the appropriate action according\n          to your department's procedures. The recommendation above is advisory\n          and does not represent an approval or completed action.\n        </p>\n\n      </td>\n    </tr>\n\n    <!-- Footer -->\n    <tr>\n      <td style=\"background:#e8edf2;padding:18px 28px;text-align:center;\">\n        <div style=\"font-size:12px;color:#526174;\">\n          Automated notification · AI Office Assistant\n        </div>\n        <div style=\"font-size:11px;color:#667085;margin-top:6px;\">\n          Please do not reply to this automated message.\n        </div>\n      </td>\n    </tr>\n\n  </table>\n\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        112
+      ],
+      "id": "f0b5ae68-144b-4195-a13e-206bc4a77317",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "sendTo": "it-support@example.com",
+        "subject": "=[{{ $json.category }} Request] {{ $json.priority }} Priority",
+        "message": "=\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172b4d;\">\n\n  <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n    style=\"max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n\n    <!-- Header -->\n    <tr>\n      <td style=\"background:#173b32;padding:24px 28px;color:#ffffff;\">\n        <div style=\"font-size:22px;font-weight:bold;\">Office Assistant</div>\n        <div style=\"font-size:11px;letter-spacing:1.5px;margin-top:6px;color:#d8e9e2;\">\n          REQUEST NOTIFICATION\n        </div>\n      </td>\n    </tr>\n\n    <!-- Main content -->\n    <tr>\n      <td style=\"padding:28px;\">\n\n        <h2 style=\"margin:0 0 8px;font-size:22px;color:#172b4d;\">\n          New Request: {{ $json.category }}\n        </h2>\n\n        <p style=\"margin:0 0 22px;font-size:14px;line-height:1.6;color:#526174;\">\n          A new employee request has been classified by the AI Office Assistant\n          and routed to your department for review.\n        </p>\n\n        <!-- Status badges -->\n        <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"margin-bottom:22px;\">\n          <tr>\n            <td style=\"padding:8px 12px;background:#dcefe5;border-radius:20px;color:#17663b;font-size:12px;font-weight:bold;\">\n              {{ $json.category }}\n            </td>\n            <td width=\"8\"></td>\n            <td style=\"padding:8px 12px;background:{{ $json.priority === 'High' ? '#fce7d8' : ($json.priority === 'Medium' ? '#fff3cd' : '#e8edf2') }};border-radius:20px;color:{{ $json.priority === 'High' ? '#9a3412' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};font-size:12px;font-weight:bold;\">\n              {{ $json.priority }} Priority\n            </td>\n          </tr>\n        </table>\n\n        <!-- Request details -->\n        <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"border:1px solid #e0e6ed;border-radius:8px;\">\n\n          <!-- Employee details -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;background:#f8fbf9;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:12px;\">\n                EMPLOYEE DETAILS\n              </div>\n\n              <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;width:130px;\">\n                    Employee ID\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;font-weight:bold;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_id || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Name\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_name || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Email\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_email || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Department\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_department || 'Not available' }}\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Original message -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                ORIGINAL EMPLOYEE MESSAGE\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere;\">\n                {{ $json.original_message || 'Original message not available.' }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Category -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                CATEGORY\n              </div>\n              <div style=\"font-size:14px;color:#172b4d;\">\n                {{ $json.category }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Priority -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                PRIORITY\n              </div>\n              <div style=\"font-size:14px;font-weight:bold;color:{{ $json.priority === 'High' ? '#c2410c' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};\">\n                {{ $json.priority }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Reason -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                REASON FOR CLASSIFICATION\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.reason }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Recommended next step -->\n          <tr>\n            <td style=\"padding:18px 20px;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                RECOMMENDED NEXT STEP\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.suggested_next_step }}\n              </div>\n            </td>\n          </tr>\n\n        </table>\n\n        <p style=\"margin:22px 0 0;font-size:14px;line-height:1.7;color:#526174;\">\n          Please review this request and take the appropriate action according\n          to your department's procedures. The recommendation above is advisory\n          and does not represent an approval or completed action.\n        </p>\n\n      </td>\n    </tr>\n\n    <!-- Footer -->\n    <tr>\n      <td style=\"background:#e8edf2;padding:18px 28px;text-align:center;\">\n        <div style=\"font-size:12px;color:#526174;\">\n          Automated notification · AI Office Assistant\n        </div>\n        <div style=\"font-size:11px;color:#667085;margin-top:6px;\">\n          Please do not reply to this automated message.\n        </div>\n      </td>\n    </tr>\n\n  </table>\n\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        272
+      ],
+      "id": "854243df-1d68-4a18-bb02-aa8fa2cb1f3b",
+      "name": "Send a message1"
+    },
+    {
+      "parameters": {
+        "sendTo": "payroll@example.com",
+        "subject": "=[{{ $json.category }} Request] {{ $json.priority }} Priority",
+        "message": "=\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172b4d;\">\n\n  <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n    style=\"max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n\n    <!-- Header -->\n    <tr>\n      <td style=\"background:#173b32;padding:24px 28px;color:#ffffff;\">\n        <div style=\"font-size:22px;font-weight:bold;\">Office Assistant</div>\n        <div style=\"font-size:11px;letter-spacing:1.5px;margin-top:6px;color:#d8e9e2;\">\n          REQUEST NOTIFICATION\n        </div>\n      </td>\n    </tr>\n\n    <!-- Main content -->\n    <tr>\n      <td style=\"padding:28px;\">\n\n        <h2 style=\"margin:0 0 8px;font-size:22px;color:#172b4d;\">\n          New Request: {{ $json.category }}\n        </h2>\n\n        <p style=\"margin:0 0 22px;font-size:14px;line-height:1.6;color:#526174;\">\n          A new employee request has been classified by the AI Office Assistant\n          and routed to your department for review.\n        </p>\n\n        <!-- Status badges -->\n        <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"margin-bottom:22px;\">\n          <tr>\n            <td style=\"padding:8px 12px;background:#dcefe5;border-radius:20px;color:#17663b;font-size:12px;font-weight:bold;\">\n              {{ $json.category }}\n            </td>\n            <td width=\"8\"></td>\n            <td style=\"padding:8px 12px;background:{{ $json.priority === 'High' ? '#fce7d8' : ($json.priority === 'Medium' ? '#fff3cd' : '#e8edf2') }};border-radius:20px;color:{{ $json.priority === 'High' ? '#9a3412' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};font-size:12px;font-weight:bold;\">\n              {{ $json.priority }} Priority\n            </td>\n          </tr>\n        </table>\n\n        <!-- Request details -->\n        <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"border:1px solid #e0e6ed;border-radius:8px;\">\n\n          <!-- Employee details -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;background:#f8fbf9;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:12px;\">\n                EMPLOYEE DETAILS\n              </div>\n\n              <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;width:130px;\">\n                    Employee ID\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;font-weight:bold;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_id || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Name\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_name || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Email\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_email || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Department\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_department || 'Not available' }}\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Original message -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                ORIGINAL EMPLOYEE MESSAGE\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere;\">\n                {{ $json.original_message || 'Original message not available.' }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Category -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                CATEGORY\n              </div>\n              <div style=\"font-size:14px;color:#172b4d;\">\n                {{ $json.category }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Priority -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                PRIORITY\n              </div>\n              <div style=\"font-size:14px;font-weight:bold;color:{{ $json.priority === 'High' ? '#c2410c' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};\">\n                {{ $json.priority }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Reason -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                REASON FOR CLASSIFICATION\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.reason }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Recommended next step -->\n          <tr>\n            <td style=\"padding:18px 20px;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                RECOMMENDED NEXT STEP\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.suggested_next_step }}\n              </div>\n            </td>\n          </tr>\n\n        </table>\n\n        <p style=\"margin:22px 0 0;font-size:14px;line-height:1.7;color:#526174;\">\n          Please review this request and take the appropriate action according\n          to your department's procedures. The recommendation above is advisory\n          and does not represent an approval or completed action.\n        </p>\n\n      </td>\n    </tr>\n\n    <!-- Footer -->\n    <tr>\n      <td style=\"background:#e8edf2;padding:18px 28px;text-align:center;\">\n        <div style=\"font-size:12px;color:#526174;\">\n          Automated notification · AI Office Assistant\n        </div>\n        <div style=\"font-size:11px;color:#667085;margin-top:6px;\">\n          Please do not reply to this automated message.\n        </div>\n      </td>\n    </tr>\n\n  </table>\n\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        432
+      ],
+      "id": "5ed41498-d082-4b4e-b64d-6d517e83f62a",
+      "name": "Send a message2"
+    },
+    {
+      "parameters": {
+        "sendTo": "hr@example.com",
+        "subject": "=[{{ $json.category }} Request] {{ $json.priority }} Priority",
+        "message": "=\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172b4d;\">\n\n  <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n    style=\"max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n\n    <!-- Header -->\n    <tr>\n      <td style=\"background:#173b32;padding:24px 28px;color:#ffffff;\">\n        <div style=\"font-size:22px;font-weight:bold;\">Office Assistant</div>\n        <div style=\"font-size:11px;letter-spacing:1.5px;margin-top:6px;color:#d8e9e2;\">\n          REQUEST NOTIFICATION\n        </div>\n      </td>\n    </tr>\n\n    <!-- Main content -->\n    <tr>\n      <td style=\"padding:28px;\">\n\n        <h2 style=\"margin:0 0 8px;font-size:22px;color:#172b4d;\">\n          New Request: {{ $json.category }}\n        </h2>\n\n        <p style=\"margin:0 0 22px;font-size:14px;line-height:1.6;color:#526174;\">\n          A new employee request has been classified by the AI Office Assistant\n          and routed to your department for review.\n        </p>\n\n        <!-- Status badges -->\n        <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"margin-bottom:22px;\">\n          <tr>\n            <td style=\"padding:8px 12px;background:#dcefe5;border-radius:20px;color:#17663b;font-size:12px;font-weight:bold;\">\n              {{ $json.category }}\n            </td>\n            <td width=\"8\"></td>\n            <td style=\"padding:8px 12px;background:{{ $json.priority === 'High' ? '#fce7d8' : ($json.priority === 'Medium' ? '#fff3cd' : '#e8edf2') }};border-radius:20px;color:{{ $json.priority === 'High' ? '#9a3412' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};font-size:12px;font-weight:bold;\">\n              {{ $json.priority }} Priority\n            </td>\n          </tr>\n        </table>\n\n        <!-- Request details -->\n        <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"border:1px solid #e0e6ed;border-radius:8px;\">\n\n          <!-- Employee details -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;background:#f8fbf9;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:12px;\">\n                EMPLOYEE DETAILS\n              </div>\n\n              <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;width:130px;\">\n                    Employee ID\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;font-weight:bold;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_id || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Name\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_name || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Email\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_email || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Department\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_department || 'Not available' }}\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Original message -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                ORIGINAL EMPLOYEE MESSAGE\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere;\">\n                {{ $json.original_message || 'Original message not available.' }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Category -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                CATEGORY\n              </div>\n              <div style=\"font-size:14px;color:#172b4d;\">\n                {{ $json.category }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Priority -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                PRIORITY\n              </div>\n              <div style=\"font-size:14px;font-weight:bold;color:{{ $json.priority === 'High' ? '#c2410c' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};\">\n                {{ $json.priority }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Reason -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                REASON FOR CLASSIFICATION\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.reason }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Recommended next step -->\n          <tr>\n            <td style=\"padding:18px 20px;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                RECOMMENDED NEXT STEP\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.suggested_next_step }}\n              </div>\n            </td>\n          </tr>\n\n        </table>\n\n        <p style=\"margin:22px 0 0;font-size:14px;line-height:1.7;color:#526174;\">\n          Please review this request and take the appropriate action according\n          to your department's procedures. The recommendation above is advisory\n          and does not represent an approval or completed action.\n        </p>\n\n      </td>\n    </tr>\n\n    <!-- Footer -->\n    <tr>\n      <td style=\"background:#e8edf2;padding:18px 28px;text-align:center;\">\n        <div style=\"font-size:12px;color:#526174;\">\n          Automated notification · AI Office Assistant\n        </div>\n        <div style=\"font-size:11px;color:#667085;margin-top:6px;\">\n          Please do not reply to this automated message.\n        </div>\n      </td>\n    </tr>\n\n  </table>\n\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        592
+      ],
+      "id": "a000a819-3489-4050-ae06-eeb8a17c2b0f",
+      "name": "Send a message3"
+    },
+    {
+      "parameters": {
+        "sendTo": "office-team@example.com",
+        "subject": "=[{{ $json.category }} Request] {{ $json.priority }} Priority",
+        "message": "=\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172b4d;\">\n\n  <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n    style=\"max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n\n    <!-- Header -->\n    <tr>\n      <td style=\"background:#173b32;padding:24px 28px;color:#ffffff;\">\n        <div style=\"font-size:22px;font-weight:bold;\">Office Assistant</div>\n        <div style=\"font-size:11px;letter-spacing:1.5px;margin-top:6px;color:#d8e9e2;\">\n          REQUEST NOTIFICATION\n        </div>\n      </td>\n    </tr>\n\n    <!-- Main content -->\n    <tr>\n      <td style=\"padding:28px;\">\n\n        <h2 style=\"margin:0 0 8px;font-size:22px;color:#172b4d;\">\n          New Request: {{ $json.category }}\n        </h2>\n\n        <p style=\"margin:0 0 22px;font-size:14px;line-height:1.6;color:#526174;\">\n          A new employee request has been classified by the AI Office Assistant\n          and routed to your department for review.\n        </p>\n\n        <!-- Status badges -->\n        <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"margin-bottom:22px;\">\n          <tr>\n            <td style=\"padding:8px 12px;background:#dcefe5;border-radius:20px;color:#17663b;font-size:12px;font-weight:bold;\">\n              {{ $json.category }}\n            </td>\n            <td width=\"8\"></td>\n            <td style=\"padding:8px 12px;background:{{ $json.priority === 'High' ? '#fce7d8' : ($json.priority === 'Medium' ? '#fff3cd' : '#e8edf2') }};border-radius:20px;color:{{ $json.priority === 'High' ? '#9a3412' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};font-size:12px;font-weight:bold;\">\n              {{ $json.priority }} Priority\n            </td>\n          </tr>\n        </table>\n\n        <!-- Request details -->\n        <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"\n          style=\"border:1px solid #e0e6ed;border-radius:8px;\">\n\n          <!-- Employee details -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;background:#f8fbf9;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:12px;\">\n                EMPLOYEE DETAILS\n              </div>\n\n              <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;width:130px;\">\n                    Employee ID\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;font-weight:bold;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_id || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Name\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_name || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Employee Email\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_email || 'Not available' }}\n                  </td>\n                </tr>\n                <tr>\n                  <td style=\"padding:5px 0;font-size:13px;color:#667085;\">\n                    Department\n                  </td>\n                  <td style=\"padding:5px 0;font-size:14px;color:#172b4d;overflow-wrap:anywhere;\">\n                    {{ $json.employee_department || 'Not available' }}\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Original message -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                ORIGINAL EMPLOYEE MESSAGE\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere;\">\n                {{ $json.original_message || 'Original message not available.' }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Category -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                CATEGORY\n              </div>\n              <div style=\"font-size:14px;color:#172b4d;\">\n                {{ $json.category }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Priority -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                PRIORITY\n              </div>\n              <div style=\"font-size:14px;font-weight:bold;color:{{ $json.priority === 'High' ? '#c2410c' : ($json.priority === 'Medium' ? '#854d0e' : '#475467') }};\">\n                {{ $json.priority }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Reason -->\n          <tr>\n            <td style=\"padding:18px 20px;border-bottom:1px solid #e7ecf2;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                REASON FOR CLASSIFICATION\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.reason }}\n              </div>\n            </td>\n          </tr>\n\n          <!-- Recommended next step -->\n          <tr>\n            <td style=\"padding:18px 20px;\">\n              <div style=\"font-size:10px;font-weight:bold;letter-spacing:1px;color:#667085;margin-bottom:7px;\">\n                RECOMMENDED NEXT STEP\n              </div>\n              <div style=\"font-size:14px;line-height:1.7;color:#344054;overflow-wrap:anywhere;\">\n                {{ $json.suggested_next_step }}\n              </div>\n            </td>\n          </tr>\n\n        </table>\n\n        <p style=\"margin:22px 0 0;font-size:14px;line-height:1.7;color:#526174;\">\n          Please review this request and take the appropriate action according\n          to your department's procedures. The recommendation above is advisory\n          and does not represent an approval or completed action.\n        </p>\n\n      </td>\n    </tr>\n\n    <!-- Footer -->\n    <tr>\n      <td style=\"background:#e8edf2;padding:18px 28px;text-align:center;\">\n        <div style=\"font-size:12px;color:#526174;\">\n          Automated notification · AI Office Assistant\n        </div>\n        <div style=\"font-size:11px;color:#667085;margin-top:6px;\">\n          Please do not reply to this automated message.\n        </div>\n      </td>\n    </tr>\n\n  </table>\n\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        768
+      ],
+      "id": "6c086cde-671d-452d-8761-bb31358c2ecd",
+      "name": "Send a message4"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1a7zO0KYzrmuOBbPwOkgbEpzMSxj71CeP",
+          "mode": "list",
+          "cachedResultName": "Employee_Database.xlsx",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a7zO0KYzrmuOBbPwOkgbEpzMSxj71CeP/edit?usp=drivesdk&ouid=115774621902379382777&rtpof=true&sd=true"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        432
+      ],
+      "id": "cb01db7d-2fb1-4754-910e-e6bba568bc94",
+      "name": "Download file"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        432
+      ],
+      "id": "96253508-c423-48ca-a494-3c284d7724bf",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "00efdbd2-7f9c-4df2-a2eb-8cc4c91e9939",
+              "leftValue": "={{ $json.employee_id }}",
+              "rightValue": "={{ $('When chat message received').item.json.chatInput.match(/EMP\\d+/i)?.[0]?.toUpperCase() || 'NO_ID' }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        432
+      ],
+      "id": "ce4115cb-b226-4b85-a96f-cdc7b8f7cf5c",
+      "name": "Filter",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1616,
+        448
+      ],
+      "id": "f328df54-aa64-4626-a5f7-82c26000585d",
+      "name": "Merge",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "97263163-28ad-4776-bf89-11de0227847f",
+              "leftValue": "={{ $json.employee_id || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        960
+      ],
+      "id": "ecce554c-563a-4b93-bb18-486e98263589",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "18c61844-b6e9-4537-a113-1106cf3ad532",
+              "name": "error",
+              "value": "Employee ID not found",
+              "type": "string"
+            },
+            {
+              "id": "940cb5ea-ea14-4439-8729-126a9fbadc9b",
+              "name": "message",
+              "value": "Please check your employee ID and try again.",
+              "type": "string"
+            },
+            {
+              "id": "2cb0c5a5-dd24-4788-af6e-2c8db9bed1cb",
+              "name": "output",
+              "value": "Please check your employee ID and try again.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1280,
+        944
+      ],
+      "id": "9c8d1ad5-cd27-4298-a4c0-96ffbf8b3961",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        944
+      ],
+      "id": "6897f5fc-7dfd-4262-a3bd-5b0189cd0748",
+      "name": "Chat"
+    },
+    {
+      "parameters": {
+        "message": "✅ Your request has been submitted successfully!\n\nYour request has been received and forwarded to the concerned department for review. Thank you for contacting the AI Office Assistant.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2560,
+        112
+      ],
+      "id": "39525767-bfd2-43e8-b1a4-8e4e9c4f9f9c",
+      "name": "Chat1"
+    },
+    {
+      "parameters": {
+        "message": "✅ Your request has been submitted successfully!\n\nYour request has been received and forwarded to the concerned department for review. Thank you for contacting the AI Office Assistant.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2576,
+        272
+      ],
+      "id": "3724b594-9a4d-4766-b21a-9f435b3260cb",
+      "name": "Chat2"
+    },
+    {
+      "parameters": {
+        "message": "✅ Your request has been submitted successfully!\n\nYour request has been received and forwarded to the concerned department for review. Thank you for contacting the AI Office Assistant.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2576,
+        432
+      ],
+      "id": "a539ea65-6679-491a-a40a-2e37fb0938b3",
+      "name": "Chat3"
+    },
+    {
+      "parameters": {
+        "message": "✅ Your request has been submitted successfully!\n\nYour request has been received and forwarded to the concerned department for review. Thank you for contacting the AI Office Assistant.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2576,
+        592
+      ],
+      "id": "6896800c-f9a2-468e-9c02-3cd54b56151e",
+      "name": "Chat4"
+    },
+    {
+      "parameters": {
+        "message": "✅ Your request has been submitted successfully!\n\nYour request has been received and forwarded to the concerned department for review. Thank you for contacting the AI Office Assistant.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2576,
+        768
+      ],
+      "id": "26e89e1c-362c-47d2-915f-6efb0e948890",
+      "name": "Chat5"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "emp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "dd6b17c3-8009-48ed-8c2c-2d4dea92f923"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7132d94c-6b8c-4efe-8449-5c5f15416f51",
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "emp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        432
+      ],
+      "id": "95695b7d-ed37-466a-b116-6be1b81a4e0a",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1456,
+        192
+      ],
+      "id": "ae1476c2-1114-44b1-ba9f-6695bceb3097",
+      "name": "Chat6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').first().json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a friendly office assistant. Answer general questions naturally and helpfully. Do not classify requests or send emails.\nNORMAL CONVERSATION RULE:\n- If the user sends a greeting such as \"Hi\", \"Hello\", or \"Good morning\", respond naturally with a friendly greeting.\n- Briefly explain that you can help with Leave, IT Support, Payroll, HR, and general office requests.\n- If the user asks what you can do, explain your capabilities in plain language.\n- Do not classify greetings or general conversational messages as employee requests.\n- For these conversational messages, return a normal, friendly text response, not JSON.\n- For actual employee requests, follow all classification rules below and return valid JSON only.\n\nYOUR ROLE:\nAnalyze employee messages and classify each actionable employee request into exactly one category:\n- Leave\n- IT Support\n- Payroll\n- HR\n- Other\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1088,
+        0
+      ],
+      "id": "96004d46-f56b-4ad1-a10f-0b06050e6edb",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "openrouter/free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        224
+      ],
+      "id": "21a731aa-7799-449c-8803-ba67ca687b4e",
+      "name": "OpenRouter Chat Model1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Leave Department",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IT Support Department",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payroll Department",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HR Department",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Other Department",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leave Department": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IT Support Department": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payroll Department": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HR Department": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Other Department": {
+      "main": [
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Chat2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Chat3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message3": {
+      "main": [
+        [
+          {
+            "node": "Chat4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message4": {
+      "main": [
+        [
+          {
+            "node": "Chat5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Chat6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
